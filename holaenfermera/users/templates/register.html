@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Login</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+  
+</head>
+
+<section class="vh-100" style="background-color: #508bfc;">
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+        <div class="card shadow-2-strong" style="border-radius: 1rem;">
+          <div class="card-body p-5 text-center">
+			
+			<form method="POST" class="form-group">
+			{% csrf_token %}
+            <h3 class="mb-5">Create Account</h3>
+            <div class="form-outline mb-4">
+              <!--<input type="email" id="typeEmailX-2" class="form-control form-control-lg" />-->
+              <input type="text" class="form-control form-control-lg" id="typeEmailX-2" placeholder="Your Name" required="required" name="{{form.username.name}}" >
+			  <label class="form-label" for="typeEmailX-2"></label>
+
+			  <input type="text" class="form-control form-control-lg" id="typeEmailX-2" placeholder="Your Email" required="required" name="{{form.email.name}}" >
+			  <label class="form-label" for="typeEmailX-2"></label>
+            
+              <!--<input type="password" id="typePasswordX-2" class="form-control form-control-lg" />-->
+              <input type="password" id="typePasswordX-2" class="form-control form-control-lg" placeholder="Password" required="required" name="{{form.password1.name}}">
+			  <label class="form-label" for="typePasswordX-2"></label>
+
+			  <input type="password" id="typePasswordX-2" class="form-control form-control-lg" placeholder="Repeat your password" required="required" name="{{form.password2.name}}">
+			  <label class="form-label" for="typePasswordX-2"></label>
+
+			</div>
+            <!--<button class="btn btn-primary btn-lg btn-block" type="submit">Login</button>-->
+			  <input class="btn btn-primary btn-lg btn-block" type="submit" value="Sign up" />
+			</form>
+          </div>
+            <div class="caja-mensaje">
+              <center>Have already an account? <a href="{%url 'login'%}">Login here</a>.</center>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
