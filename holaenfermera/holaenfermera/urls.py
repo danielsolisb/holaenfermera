@@ -30,6 +30,7 @@ urlpatterns = [
     path('', lambda request: redirect('login')),
     # URL para el login
     path('login/', auth_views.LoginView.as_view(), name='login'),
+    path("Processes/", include("CoreApps.processes.urls")),
 ]
 
 if settings.DEBUG:

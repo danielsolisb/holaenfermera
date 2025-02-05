@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     'users',
+    'CoreApps.patients',
+    'CoreApps.processes',
 ]
 #config de crispy
 CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap5', 'bootstrap4', 'bootstrap3', 'uni-form')
@@ -149,7 +151,7 @@ TEMPLATES_ROOT = os.path.join(BASE_DIR, 'templates')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-LOGIN_REDIRECT_URL = '/Portal/Dashboard'
+LOGIN_REDIRECT_URL = '/Processes/Dashboard'
 LOGOUT_REDIRECT_URL = '/'
 #LOGIN_URL = '/Portal/login'
 

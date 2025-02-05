@@ -24,7 +24,7 @@ class User(AbstractUser):
     degree_title    = models.CharField(max_length=20, verbose_name="Degree title", null=True, blank=True)
     telephone       = models.CharField(max_length=50, verbose_name="Telephone",blank=True, null=True)
     country         = models.CharField(max_length=30, verbose_name="Country", null=False, blank=False)
-    company         = models.CharField(max_length=50, verbose_name="Company",blank=True, null=True)
+#    company         = models.CharField(max_length=50, verbose_name="Company",blank=True, null=True)
     email           = models.EmailField(unique=True, max_length=70, null=False, blank=False)
     categorie       = models.CharField(choices=options, max_length=50, blank=False, null=True)
 

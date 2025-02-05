@@ -15,7 +15,7 @@ class CustomUserAdmin(UserAdmin):
                     'degree_title',
                     'telephone',
                     'country',
-                    'company',
+                    #'company',
                     'categorie',
                     #'StationID',
                 )
@@ -37,7 +37,7 @@ class UserAdmin(CustomUserAdmin):
         'degree_title',
         'telephone',
         'country',
-        'company',
+        #'company',
         'categorie',
         'last_login',
         'date_joined',
