@@ -7,38 +7,41 @@ from .models import (
     SerumApplication,
     VaccineApplication,
     SuerotherapyApplication,
-    Doctor
+    Doctor,
+    ServiceFee
 )
-
-@admin.register(Consent)
-class ConsentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'patient', 'age', 'document_date')
-    search_fields = ('patient__first_names', 'patient__last_names')
-
-@admin.register(Prescription)
-class PrescriptionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'patient', 'doctor', 'prescription_date')
-    search_fields = ('patient__first_names', 'patient__last_names', 'doctor')
-
-@admin.register(Doctor)
-class DoctorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'specialty', 'phone', 'email')
-    search_fields = ('name', 'specialty')
-
 @admin.register(SerumApplication)
 class SerumApplicationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'patient', 'procedure', 'location', 'date_time')
-    search_fields = ('patient__first_names', 'patient__last_names')
-    list_filter = ('procedure', 'location')
+    # Ahora ya no se usa 'procedure' ya que se eliminó; mostramos 'product' y 'price'
+    list_display = ('id', 'patient', 'product', 'price', 'location', 'date_time')
+    list_filter = ('location',)
 
 @admin.register(VaccineApplication)
 class VaccineApplicationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'patient', 'vaccine', 'location', 'date_time', 'price')
-    search_fields = ('patient__first_names', 'patient__last_names')
+    # En lugar de 'vaccine', se usa 'product'
+    list_display = ('id', 'patient', 'product', 'price', 'next_application', 'location', 'date_time')
     list_filter = ('location',)
 
 @admin.register(SuerotherapyApplication)
 class SuerotherapyApplicationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'patient', 'suerotherapy', 'location', 'date_time', 'price')
-    search_fields = ('patient__first_names', 'patient__last_names')
+    # En lugar de 'suerotherapy', se usa 'product'
+    list_display = ('id', 'patient', 'product', 'price', 'next_application', 'location', 'date_time')
     list_filter = ('location',)
+
+@admin.register(ServiceFee)
+class ServiceFeeAdmin(admin.ModelAdmin):
+    list_display = ('service_type', 'location', 'fee')
+    list_filter = ('service_type', 'location')
+
+# Puedes registrar también los modelos de documentos y Doctor:
+@admin.register(Consent)
+class ConsentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'patient', 'age', 'document_date')
+
+@admin.register(Prescription)
+class PrescriptionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'patient', 'doctor', 'prescription_date')
+
+@admin.register(Doctor)
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'specialty')

@@ -3,11 +3,35 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from CoreApps.patients.models import Patient
-from CoreApps.store.models import Vaccine
-from CoreApps.store.models import SuerotherapyProduct
+#from CoreApps.store.models import Vaccine
+#from CoreApps.store.models import SuerotherapyProduct
 from CoreApps.store.models import Product 
 #from .models import Doctor
 from django.utils.timezone import now
+
+#modelo para guardar tarifas de servicios
+class ServiceFee(models.Model):
+    SERVICE_CHOICES = (
+        ('vaccine', 'Aplicación de vacuna'),
+        ('suerotherapy', 'Aplicación de sueroterapia'),
+        ('serum', 'Aplicación de suero'),
+    )
+    LOCATION_CHOICES = (
+        ('local', 'En el local'),
+        ('domicile', 'A domicilio'),
+    )
+    service_type = models.CharField(max_length=20, choices=SERVICE_CHOICES, verbose_name="Tipo de Servicio")
+    location = models.CharField(max_length=20, choices=LOCATION_CHOICES, verbose_name="Ubicación")
+    fee = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Tarifa")
+
+    def __str__(self):
+        return f"{self.get_service_type_display()} - {self.get_location_display()} : {self.fee}"
+
+    class Meta:
+        verbose_name = "Tarifa de Servicio"
+        verbose_name_plural = "Tarifas de Servicio"
+        unique_together = ('service_type', 'location')
+
 
 
 class Consent(models.Model):
@@ -101,57 +125,83 @@ class AbstractService(models.Model):
 # Servicio: Aplicación de Suero (usa el modelo Product de store)
 
 class SerumApplication(AbstractService):
-    PROCEDURE_CHOICES = (
-        ('colocado', 'Colocado únicamente'),
-        ('colocado_retirado', 'Colocado y retirado'),
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Producto"
     )
-    procedure = models.CharField(max_length=30, choices=PROCEDURE_CHOICES, verbose_name="Procedimiento")
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Producto")
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Precio del Servicio")
+    
+    def save(self, *args, **kwargs):
+        fee_record = ServiceFee.objects.filter(service_type='serum', location=self.location).first()
+        if fee_record:
+            self.price = fee_record.fee
+        else:
+            self.price = 0
+        super(SerumApplication, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"Aplicación de suero ({self.get_procedure_display()}) para {self.patient}"
+        return f"Aplicación de suero para {self.patient}"
 
     class Meta:
         verbose_name = "Aplicación de suero"
         verbose_name_plural = "Aplicaciones de suero"
 
+#class SerumApplication(AbstractService):
+#    PROCEDURE_CHOICES = (
+#        ('colocado', 'Colocado únicamente'),
+#        ('colocado_retirado', 'Colocado y retirado'),
+#    )
+#    procedure = models.CharField(max_length=30, choices=PROCEDURE_CHOICES, verbose_name="Procedimiento")
+#    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Producto")
+#
+#    def __str__(self):
+#        return f"Aplicación de suero ({self.get_procedure_display()}) para {self.patient}"
+#
+#    class Meta:
+#        verbose_name = "Aplicación de suero"
+#        verbose_name_plural = "Aplicaciones de suero"
+
 
 # Servicio: Aplicación de Vacunas (usa el modelo Vaccine de store)
 
 class VaccineApplication(AbstractService):
-    # Aquí ya no se definen opciones fijas; se selecciona el producto de la tabla Vaccine.
-    vaccine = models.ForeignKey(Vaccine, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vacuna")
-    
-    # Si se requiere también la opción de ingresar manualmente el medicamento y precio, se pueden mantener:
-    medicine_manual = models.CharField(max_length=255, null=True, blank=True, verbose_name="Medicamento (manual)")
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Precio")
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Producto"
+    )
+    # El campo price se calculará automáticamente
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Precio Final")
     next_application = models.DateField(null=True, blank=True, verbose_name="Próxima Aplicación")
-
+    
     def save(self, *args, **kwargs):
-        # Si se selecciona una vacuna, copia el precio de ese producto
-        if self.vaccine:
-            self.price = self.vaccine.price
+        # Consultar la tarifa para el servicio de vacuna según la ubicación
+        fee_record = ServiceFee.objects.filter(service_type='vaccine', location=self.location).first()
+        if fee_record and self.product:
+            self.price = self.product.price + fee_record.fee
+        else:
+            self.price = 0  # O manejar un error/validación
         super(VaccineApplication, self).save(*args, **kwargs)
 
     def clean(self):
-        # Primero se ejecuta la validación del modelo abstracto
         super().clean()
-        # Si se ha asignado un consentimiento, verificar que no esté usado en otro servicio
+        # Validación para que el consentimiento no se reutilice (ya implementada previamente)
         if self.consent:
             from .models import SerumApplication, VaccineApplication, SuerotherapyApplication
             qs_serum = SerumApplication.objects.filter(consent=self.consent)
             qs_vaccine = VaccineApplication.objects.filter(consent=self.consent)
             qs_suerotherapy = SuerotherapyApplication.objects.filter(consent=self.consent)
-            
-            # Excluir el servicio actual si ya existe (en caso de actualización)
             if self.pk:
                 qs_serum = qs_serum.exclude(pk=self.pk)
                 qs_vaccine = qs_vaccine.exclude(pk=self.pk)
                 qs_suerotherapy = qs_suerotherapy.exclude(pk=self.pk)
-            
             if qs_serum.exists() or qs_vaccine.exists() or qs_suerotherapy.exists():
                 raise ValidationError("Este consentimiento ya está asociado a otro servicio.")
-    
 
     def __str__(self):
         return f"Aplicación de vacuna para {self.patient}"
@@ -161,19 +211,69 @@ class VaccineApplication(AbstractService):
         verbose_name_plural = "Aplicaciones de vacunas"
 
 
+
+#class VaccineApplication(AbstractService):
+#    # Aquí ya no se definen opciones fijas; se selecciona el producto de la tabla Vaccine.
+#    vaccine = models.ForeignKey(Vaccine, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vacuna")
+#    
+#    # Si se requiere también la opción de ingresar manualmente el medicamento y precio, se pueden mantener:
+#    medicine_manual = models.CharField(max_length=255, null=True, blank=True, verbose_name="Medicamento (manual)")
+#    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Precio")
+#    next_application = models.DateField(null=True, blank=True, verbose_name="Próxima Aplicación")
+#
+#    def save(self, *args, **kwargs):
+#        # Si se selecciona una vacuna, copia el precio de ese producto
+#        if self.vaccine:
+#            self.price = self.vaccine.price
+#        super(VaccineApplication, self).save(*args, **kwargs)
+#
+#    def clean(self):
+#        # Primero se ejecuta la validación del modelo abstracto
+#        super().clean()
+#        # Si se ha asignado un consentimiento, verificar que no esté usado en otro servicio
+#        if self.consent:
+#            from .models import SerumApplication, VaccineApplication, SuerotherapyApplication
+#            qs_serum = SerumApplication.objects.filter(consent=self.consent)
+#            qs_vaccine = VaccineApplication.objects.filter(consent=self.consent)
+#            qs_suerotherapy = SuerotherapyApplication.objects.filter(consent=self.consent)
+#            
+#            # Excluir el servicio actual si ya existe (en caso de actualización)
+#            if self.pk:
+#                qs_serum = qs_serum.exclude(pk=self.pk)
+#                qs_vaccine = qs_vaccine.exclude(pk=self.pk)
+#                qs_suerotherapy = qs_suerotherapy.exclude(pk=self.pk)
+#            
+#            if qs_serum.exists() or qs_vaccine.exists() or qs_suerotherapy.exists():
+#                raise ValidationError("Este consentimiento ya está asociado a otro servicio.")
+#    
+#
+#    def __str__(self):
+#        return f"Aplicación de vacuna para {self.patient}"
+#
+#    class Meta:
+#        verbose_name = "Aplicación de vacuna"
+#        verbose_name_plural = "Aplicaciones de vacunas"
+
+
 # Servicio: Aplicación de Sueroterapia (usa el modelo SuerotherapyProduct de store)
 
 class SuerotherapyApplication(AbstractService):
-    suerotherapy = models.ForeignKey(SuerotherapyProduct, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Producto de sueroterapia")
-    
-    medicine_manual = models.CharField(max_length=255, null=True, blank=True, verbose_name="Medicamento (manual)")
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Precio")
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Producto"
+    )
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Precio Final")
     next_application = models.DateField(null=True, blank=True, verbose_name="Próxima Aplicación")
     
     def save(self, *args, **kwargs):
-        # Si se selecciona un producto de sueroterapia, se copia su precio
-        if self.suerotherapy:
-            self.price = self.suerotherapy.price
+        fee_record = ServiceFee.objects.filter(service_type='suerotherapy', location=self.location).first()
+        if fee_record and self.product:
+            self.price = self.product.price + fee_record.fee
+        else:
+            self.price = 0
         super(SuerotherapyApplication, self).save(*args, **kwargs)
 
     def clean(self):
@@ -183,12 +283,10 @@ class SuerotherapyApplication(AbstractService):
             qs_serum = SerumApplication.objects.filter(consent=self.consent)
             qs_vaccine = VaccineApplication.objects.filter(consent=self.consent)
             qs_suerotherapy = SuerotherapyApplication.objects.filter(consent=self.consent)
-            
             if self.pk:
                 qs_serum = qs_serum.exclude(pk=self.pk)
                 qs_vaccine = qs_vaccine.exclude(pk=self.pk)
                 qs_suerotherapy = qs_suerotherapy.exclude(pk=self.pk)
-            
             if qs_serum.exists() or qs_vaccine.exists() or qs_suerotherapy.exists():
                 raise ValidationError("Este consentimiento ya está asociado a otro servicio.")
 
@@ -198,3 +296,39 @@ class SuerotherapyApplication(AbstractService):
     class Meta:
         verbose_name = "Aplicación de sueroterapia"
         verbose_name_plural = "Aplicaciones de sueroterapia"
+
+#class SuerotherapyApplication(AbstractService):
+#    suerotherapy = models.ForeignKey(SuerotherapyProduct, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Producto de sueroterapia")
+#    
+#    medicine_manual = models.CharField(max_length=255, null=True, blank=True, verbose_name="Medicamento (manual)")
+#    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Precio")
+#    next_application = models.DateField(null=True, blank=True, verbose_name="Próxima Aplicación")
+#    
+#    def save(self, *args, **kwargs):
+#        # Si se selecciona un producto de sueroterapia, se copia su precio
+#        if self.suerotherapy:
+#            self.price = self.suerotherapy.price
+#        super(SuerotherapyApplication, self).save(*args, **kwargs)
+#
+#    def clean(self):
+#        super().clean()
+#        if self.consent:
+#            from .models import SerumApplication, VaccineApplication, SuerotherapyApplication
+#            qs_serum = SerumApplication.objects.filter(consent=self.consent)
+#            qs_vaccine = VaccineApplication.objects.filter(consent=self.consent)
+#            qs_suerotherapy = SuerotherapyApplication.objects.filter(consent=self.consent)
+#            
+#            if self.pk:
+#                qs_serum = qs_serum.exclude(pk=self.pk)
+#                qs_vaccine = qs_vaccine.exclude(pk=self.pk)
+#                qs_suerotherapy = qs_suerotherapy.exclude(pk=self.pk)
+#            
+#            if qs_serum.exists() or qs_vaccine.exists() or qs_suerotherapy.exists():
+#                raise ValidationError("Este consentimiento ya está asociado a otro servicio.")
+#
+#    def __str__(self):
+#        return f"Aplicación de sueroterapia para {self.patient}"
+#
+#    class Meta:
+#        verbose_name = "Aplicación de sueroterapia"
+#        verbose_name_plural = "Aplicaciones de sueroterapia"
