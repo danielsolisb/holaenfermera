@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'users',
     'CoreApps.patients',
     'CoreApps.processes',
+    'CoreApps.mainpage',
+    'CoreApps.store',
 ]
 #config de crispy
 CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap5', 'bootstrap4', 'bootstrap3', 'uni-form')

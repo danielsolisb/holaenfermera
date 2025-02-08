@@ -56,8 +56,8 @@ class PatientCreateView(CreateView):
         user = self.request.user
         context = super().get_context_data(**kwargs)
         context['user_name'] = user.username
-        context['title'] = "Add Patient"
-        context['subTitle'] = "Data"
+        context['title'] = "Agregar Paciente"
+        context['subTitle'] = "Datos"
         # Serializar las intersecciones para pasarlas al JavaScript
         return context
 
