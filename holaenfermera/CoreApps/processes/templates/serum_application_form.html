@@ -1,0 +1,96 @@
+<!-- templates/serum_application_form.html -->
+{% extends 'base/body.html' %}
+{% load crispy_forms_tags %}
+
+{% block head %}
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h2>{{ title }}</h2>
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        {{ form.patient|as_crispy_field }}
+                        <input type="hidden" name="patient_id" id="patient_id">
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.product|as_crispy_field }}
+                        <input type="hidden" name="product_id" id="product_id">
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.location|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.prescription|as_crispy_field }}
+                        <input type="hidden" name="prescription_id" id="prescription_id">
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.consent|as_crispy_field }}
+                        <input type="hidden" name="consent_id" id="consent_id">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar Aplicación de Suero</button>
+                    <a href="{% url 'Dashboard' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        $(function() {
+            $("#id_patient").autocomplete({
+                source: "{% url 'search-patients' %}",
+                minLength: 2,
+                select: function(event, ui) {
+                    $("#id_patient").val(ui.item.value); // Display the selected text
+                    $("#patient_id").val(ui.item.id); // Save the ID in the hidden field
+                    return false;
+                }
+            });
+
+            $("#id_product").autocomplete({
+                source: "{% url 'search-products' %}",
+                minLength: 2,
+                select: function(event, ui) {
+                    $("#id_product").val(ui.item.value);
+                    $("#product_id").val(ui.item.id);
+                    return false;
+                }
+            });
+
+            $("#id_prescription").autocomplete({
+                source: "{% url 'search-prescriptions' %}",
+                minLength: 2,
+                select: function(event, ui) {
+                    $("#id_prescription").val(ui.item.value);
+                    $("#prescription_id").val(ui.item.id);
+                    return false;
+                }
+            });
+
+            $("#id_consent").autocomplete({
+                source: "{% url 'search-consents' %}",
+                minLength: 2,
+                select: function(event, ui) {
+                    $("#id_consent").val(ui.item.value);
+                    $("#consent_id").val(ui.item.id);
+                    return false;
+                }
+            });
+        });
+    </script>
+{% endblock %}

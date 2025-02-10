@@ -1,0 +1,38 @@
+{% extends 'base/body.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block head %}
+    <title>Crear Nuevo Doctor</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Crear Nuevo Doctor</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Guardar Doctor</button>
+                            <!-- Botón de regresar usando history.back() -->
+                            <button type="button" class="btn btn-secondary" onclick="history.back()">Regresar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    // Scripts adicionales si es necesario
+</script>
+{% endblock %}

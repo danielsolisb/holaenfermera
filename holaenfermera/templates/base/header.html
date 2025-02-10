@@ -63,6 +63,28 @@
         </li>
 
         <li class="nav-item has-treeview menu-close">
+          <a href="{%url 'Patient'%}"  class="nav-link">
+            <!--<i class="nav-icon fa fa-user-md"></i>-->
+            <i class="nav-icon fa fa-chart-line"></i>
+            <p>
+              Agregar Paciente
+              <!--<i class="right fas fa-angle-left"></i>-->
+            </p>
+          </a>
+        </li>
+
+        <li class="nav-item has-treeview menu-close">
+          <a href="{%url 'document-selection'%}"  class="nav-link">
+            <!--<i class="nav-icon fa fa-user-md"></i>-->
+            <i class="nav-icon fa fa-chart-line"></i>
+            <p>
+              Ag. Receta/Consentimiento
+              <!--<i class="right fas fa-angle-left"></i>-->
+            </p>
+          </a>
+        </li>
+
+        <li class="nav-item has-treeview menu-close">
           <a href="#" class="nav-link">
             <i class="nav-icon fa fa-laptop"></i>
             <p>
@@ -80,7 +102,7 @@
           </ul>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a href="{%url 'serum-application-create'%}" class="nav-link">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Aplicación Sueros</p>
               </a>

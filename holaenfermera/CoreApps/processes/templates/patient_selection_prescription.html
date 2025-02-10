@@ -1,0 +1,67 @@
+{% extends 'base/body.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block head %}
+    <title>Seleccionar Paciente para Receta</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Selecciona un Paciente para la Receta</h2>
+    <!-- Botón de regresar a la selección de documento -->
+    <div class="mb-3">
+        <a href="{% url 'document-selection' %}" class="btn btn-secondary">Regresar</a>
+    </div>
+    <div class="mb-3">
+        <input type="text" id="patient-search" class="form-control" placeholder="Buscar paciente por nombre, identificación, etc.">
+    </div>
+    <div id="patient-list">
+        <h4>Últimos 5 Pacientes Agregados</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>ID</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in recent_patients %}
+                <tr>
+                    <td>{{ patient.first_names }}</td>
+                    <td>{{ patient.last_names }}</td>
+                    <td>{{ patient.id_card }}</td>
+                    <td>
+                        <!-- Se asume que 'doctor_id' se pasa por query parameter -->
+                        <a href="{% url 'prescription-create' doctor_id=doctor_id %}?patient_id={{ patient.id }}" class="btn btn-sm btn-primary">Seleccionar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No hay pacientes registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(document).ready(function(){
+    $('#patient-search').on('input', function(){
+        var query = $(this).val();
+        $.ajax({
+            url: "{% url 'patient-search-prescription' %}",
+            data: {'q': query},
+            success: function(data){
+                $('#patient-list').html(data);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

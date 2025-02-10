@@ -1,0 +1,32 @@
+{% extends 'base/body.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block head %}
+    <title>Crear Consentimiento</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Completa el Consentimiento</h2>
+    <!-- Datos del paciente seleccionado -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <h4>Paciente Seleccionado:</h4>
+            <p><strong>Nombres:</strong> {{ patient.first_names }}</p>
+            <p><strong>Apellidos:</strong> {{ patient.last_names }}</p>
+            <p><strong>Identificación:</strong> {{ patient.id_card }}</p>
+        </div>
+    </div>
+    <!-- Botón de regresar (regresa a la selección de paciente) -->
+    <div class="mb-3">
+        <a href="{% url 'patient-selection-consent' %}" class="btn btn-secondary">Regresar</a>
+    </div>
+    <!-- Formulario de consentimiento -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary">Guardar Consentimiento</button>
+    </form>
+</div>
+{% endblock %}
