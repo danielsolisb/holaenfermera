@@ -46,7 +46,7 @@ class PatientCreateView(CreateView):
     model = Patient
     form_class = PatientForm
     template_name = "patient_form.html"
-    success_url = reverse_lazy('dashboard')  # Ajusta esta URL según corresponda
+    success_url = reverse_lazy('Dashboard')  # Ajusta esta URL según corresponda
 
     def form_valid(self, form):
         # Creamos la instancia sin guardar aún para asignar created_by
@@ -265,15 +265,20 @@ class SerumApplicationCreateView(CreateView):
         return context
 
     def form_valid(self, form):
-        # Obtener los IDs de los objetos seleccionados
+        # Obtener los IDs de los objetos seleccionados desde la solicitud POST
         patient_id = self.request.POST.get('patient_id')
         product_id = self.request.POST.get('product_id')
         prescription_id = self.request.POST.get('prescription_id')
         consent_id = self.request.POST.get('consent_id')
 
-        # Asignar los objetos a la instancia del modelo
+        # Asignar los objetos a la instancia del modelo, si se seleccionaron
         if patient_id:
-            form.instance.patient = get_object_or_404(Patient, pk=patient_id)
+            try:
+                form.instance.patient = Patient.objects.get(pk=patient_id)
+            except Patient.DoesNotExist:
+                # Manejar el caso en que el paciente no existe
+                form.add_error('patient', "Paciente inválido")
+                return self.form_invalid(form)  # Retornar el formulario con errores
         if product_id:
             form.instance.product = get_object_or_404(Product, pk=product_id)
         if prescription_id:
