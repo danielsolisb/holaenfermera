@@ -27,7 +27,7 @@ from users.views import register
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', lambda request: redirect('login')),
+    path('', include('CoreApps.mainpage.urls')),  # Ruta para la página principal
     # URL para el login
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path("Processes/", include("CoreApps.processes.urls")),
