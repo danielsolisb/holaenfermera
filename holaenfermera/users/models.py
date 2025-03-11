@@ -1,5 +1,7 @@
+# users/models.py
 from holaenfermera.settings import MEDIA_ROOT, BASE_DIR, STATIC_URL, MEDIA_URL
 from django.db import models
+from django.conf import settings
 
 from django.db.models.fields import EmailField
 from django.contrib.auth.models import BaseUserManager, AbstractUser, AbstractBaseUser
@@ -7,15 +9,12 @@ from django.db.models.query import FlatValuesListIterable
 from django.db.models.deletion import CASCADE
 from django.db.models.fields.related import ForeignKey
 from django.db.models.fields.files import ImageField
-#from CoreApps.Stations.models import Station
+from CoreApps.common.models import Location
+
 
 import datetime
 
-# Create your models here.
 
-# users/models.py
-from django.db import models
-from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 class CustomUserManager(BaseUserManager):
     use_in_migrations = True
@@ -78,39 +77,24 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
-
-#class User(AbstractUser):
-#    # Eliminamos el campo username para usar email como identificador principal
-#    username = None
-#    email = models.EmailField(unique=True)
-#    
-#    USER_TYPE_CHOICES = (
-#        ('system_admin', 'Administrador del sistema'),
-#        ('nurse', 'Enfermero'),
-#        ('seller', 'Vendedor'),
-#        ('account_admin', 'Administrador contable'),
-#        ('client', 'Cliente'),
-#    )
-#    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
-#    phone_number = models.CharField(max_length=15, blank=True, null=True)
-#    
-#    # Indicamos que el email será el identificador principal
-#    USERNAME_FIELD = 'email'
-#    REQUIRED_FIELDS = []  # Agrega otros campos requeridos si es necesario
-#
-#    def save(self, *args, **kwargs):
-#        if self.user_type == 'system_admin':
-#            self.is_staff = True  # Permite el acceso al admin (puedes asignar is_superuser si se requiere)
-#        elif self.user_type == 'client':
-#            self.is_staff = False  # Siempre se fuerza a False para clientes
-#        # Puedes definir reglas para otros roles según convenga.
-#        super().save(*args, **kwargs)
-#
-#    def __str__(self):
-#        return f"{self.email} ({self.get_user_type_display()})"
-        
     def get_user_login(self):
         return str(self.pk)
+
+
+# Modelo para Localidades/Sucursales
+#class Location(models.Model):
+#    name = models.CharField(max_length=100, unique=True, help_text="Nombre de la localidad o sucursal")
+#    address = models.CharField(max_length=255, help_text="Dirección completa de la localidad")
+#    phone = models.CharField(max_length=15, blank=True, null=True, help_text="Teléfono de contacto")
+#    email = models.EmailField(blank=True, null=True, help_text="Correo electrónico de contacto")
+#    is_active = models.BooleanField(default=True, help_text="Indica si la localidad está activa")
+#    
+#    def __str__(self):
+#        return self.name
+#    
+#    class Meta:
+#        verbose_name = "Localidad"
+#        verbose_name_plural = "Localidades"
 
 
 # Modelo para Especialidades en enfermería
@@ -119,6 +103,10 @@ class Specialty(models.Model):
     
     def __str__(self):
         return self.name
+    
+    class Meta:
+        verbose_name = "Especialidad"
+        verbose_name_plural = "Especialidades"
 
 
 class NurseProfile(models.Model):
@@ -128,9 +116,22 @@ class NurseProfile(models.Model):
     specialties = models.ManyToManyField(Specialty, blank=True, help_text="Especialidades en enfermería")
     available = models.BooleanField(default=True, help_text="Indica disponibilidad para atender")
     rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True, help_text="Valoración (0.00 a 5.00)")
+    # Nuevos campos para la asignación de localidad o trabajo online
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name='nurses', help_text="Localidad asignada para trabajo")
+    is_online_worker = models.BooleanField(default=False, help_text="Indica si trabaja en modalidad online")
     
     def __str__(self):
         return f"Enfermero: {self.user.email}"
+    
+    def save(self, *args, **kwargs):
+        # Si tiene localidad asignada, no puede ser trabajador online y viceversa
+        if self.location is not None:
+            self.is_online_worker = False
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        verbose_name = "Perfil de Enfermero"
+        verbose_name_plural = "Perfiles de Enfermeros"
 
 
 class SellerProfile(models.Model):
@@ -139,9 +140,22 @@ class SellerProfile(models.Model):
     sales_region = models.CharField(max_length=100, help_text="Zona o región asignada para ventas")
     employee_id = models.CharField(max_length=50, blank=True, null=True, help_text="Identificador de empleado")
     rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True, help_text="Valoración del desempeño")
+    # Nuevos campos para la asignación de localidad o trabajo online
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name='sellers', help_text="Localidad asignada para trabajo")
+    is_online_worker = models.BooleanField(default=False, help_text="Indica si trabaja en modalidad online")
     
     def __str__(self):
         return f"Vendedor: {self.user.email}"
+    
+    def save(self, *args, **kwargs):
+        # Si tiene localidad asignada, no puede ser trabajador online y viceversa
+        if self.location is not None:
+            self.is_online_worker = False
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        verbose_name = "Perfil de Vendedor"
+        verbose_name_plural = "Perfiles de Vendedores"
 
 
 class AccountAdminProfile(models.Model):
@@ -151,6 +165,10 @@ class AccountAdminProfile(models.Model):
     
     def __str__(self):
         return f"Administrador Contable: {self.user.email}"
+    
+    class Meta:
+        verbose_name = "Perfil de Administrador Contable"
+        verbose_name_plural = "Perfiles de Administradores Contables"
 
 
 class ClientProfile(models.Model):
@@ -168,6 +186,66 @@ class ClientProfile(models.Model):
     def __str__(self):
         return f"Cliente: {self.user.email}"
     
+    class Meta:
+        verbose_name = "Perfil de Cliente"
+        verbose_name_plural = "Perfiles de Clientes"
     
+    
+#class Availability(models.Model):
+#    WEEKDAY_CHOICES = (
+#        (0, 'Lunes'),
+#        (1, 'Martes'),
+#        (2, 'Miércoles'),
+#        (3, 'Jueves'),
+#        (4, 'Viernes'),
+#        (5, 'Sábado'),
+#        (6, 'Domingo'),
+#    )
+#    nurse = models.ForeignKey(
+#        settings.AUTH_USER_MODEL,
+#        on_delete=models.CASCADE,
+#        limit_choices_to={'user_type': 'nurse'}
+#    )
+#    day_of_week = models.IntegerField(choices=WEEKDAY_CHOICES)
+#    start_time = models.TimeField()
+#    end_time = models.TimeField()
+#
+#    def __str__(self):
+#        return f"{self.nurse.email} - {self.get_day_of_week_display()} {self.start_time} - {self.end_time}"
 
+class Availability(models.Model):
+    WEEKDAY_CHOICES = (
+        (0, 'Lunes'),
+        (1, 'Martes'),
+        (2, 'Miércoles'),
+        (3, 'Jueves'),
+        (4, 'Viernes'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    )
+    nurse = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        limit_choices_to={'user_type': 'nurse'}
+    )
+    day_of_week = models.IntegerField(choices=WEEKDAY_CHOICES)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
 
+    def __str__(self):
+        return f"{self.nurse.email} - {self.get_day_of_week_display()} {self.start_time}-{self.end_time}"
+
+class HolidayException(models.Model):
+    nurse = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        limit_choices_to={'user_type': 'nurse'}
+    )
+    date = models.DateField(help_text="Día festivo o excepción")
+    is_off = models.BooleanField(default=True, help_text="Si está libre este día entero")
+    # Opcional: si el enfermero trabaja parcialmente, se pueden agregar campos de horario
+    # start_time = models.TimeField(null=True, blank=True)
+    # end_time = models.TimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Excepción de {self.nurse.email} en {self.date}"

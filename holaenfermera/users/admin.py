@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, NurseProfile, SellerProfile, AccountAdminProfile, ClientProfile, Specialty
+from .models import User, NurseProfile, SellerProfile, AccountAdminProfile, ClientProfile, Specialty, Availability, HolidayException
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
 
@@ -65,6 +65,21 @@ class SpecialtyAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 admin.site.register(Specialty, SpecialtyAdmin)
+
+
+class AvailabilityAdmin(admin.ModelAdmin):
+    list_display = ('nurse', 'day_of_week', 'start_time', 'end_time')
+    list_filter = ('day_of_week', 'nurse')
+    search_fields = ('nurse__email',)
+
+admin.site.register(Availability, AvailabilityAdmin)
+
+class HolidayExceptionAdmin(admin.ModelAdmin):
+    list_display = ('nurse', 'date', 'is_off')
+    list_filter = ('is_off', 'date', 'nurse')
+    search_fields = ('nurse__email', 'date')
+
+admin.site.register(HolidayException, HolidayExceptionAdmin)
 
 
 #from django.contrib import admin

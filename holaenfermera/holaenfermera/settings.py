@@ -47,10 +47,11 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     'users',
-    'CoreApps.patients',
     'CoreApps.processes',
     'CoreApps.mainpage',
     'CoreApps.store',
+    'CoreApps.services',
+    'CoreApps.common',
 ]
 #config de crispy
 CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap5', 'bootstrap4', 'bootstrap3', 'uni-form')
