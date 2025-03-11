@@ -32,27 +32,36 @@
         height: 50px;
     }
     
-    .hero-section {
+    .carousel-item {
         position: relative;
         padding: 80px 0;
         background-color: #f5f5f5;
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0)), url("{% static 'img/Recurso-6.png' %}");
+        background-size: cover;
+        background-position: center;
+        height: 500px; /* Incrementar la altura para mejorar la visualización */
+        border-radius: 10px;
+        overflow: hidden;
     }
     
     .hero-content {
-        max-width: 500px;
+        max-width: 100%; /* Ajustar para que ocupe todo el ancho en móviles */
+        position: relative;
+        z-index: 1;
+        animation: slide-up 1s ease-out;
     }
     
     .hero-title {
         color: var(--primary-color);
         font-weight: 700;
         margin-bottom: 20px;
-        font-size: 2.5rem;
+        font-size: 2rem; /* Reducir tamaño de fuente en móviles */
         text-transform: uppercase;
     }
     
     .hero-subtitle {
         margin-bottom: 30px;
-        font-size: 1.1rem;
+        font-size: 1rem; /* Reducir tamaño de fuente en móviles */
     }
     
     .btn-primary {
@@ -61,14 +70,16 @@
         padding: 10px 25px;
         font-weight: 600;
         border-radius: 30px;
+        margin-top: 20px; /* Añadir margen superior para separar del texto */
+        animation: slide-up 1s ease-out;
     }
     
     .service-form {
         background-color: white;
         border-radius: 10px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        padding: 30px;
-        margin-top: -50px;
+        padding: 20px; /* Reducir padding en móviles */
+        margin-top: -80px; /* Ajustar margen superior para sobreponer sobre el carrusel */
         position: relative;
         z-index: 10;
     }
@@ -77,12 +88,14 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: 20px;
+        flex-wrap: wrap; /* Permitir que los pasos se ajusten en móviles */
     }
     
     .step {
         text-align: center;
         flex: 1;
         position: relative;
+        margin-bottom: 10px; /* Añadir margen inferior en móviles */
     }
     
     .step-number {
@@ -135,46 +148,38 @@
         box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         z-index: 1000;
     }
-    
-    .hero-image {
-        background-image: linear-gradient(to right, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0)), url("{% static 'img/Recurso-6.png' %}");
-        background-size: cover;
-        background-position: center;
-        height: 300px; /* Ajusta la altura según sea necesario */
-        border-radius: 10px;
+
+    @keyframes slide-up {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
 
-    .priority-section {
-        padding: 60px 0;
-        background-color: #f9f9f9;
-    }
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 1.5rem; /* Ajustar tamaño de fuente en móviles */
+        }
+        
+        .hero-subtitle {
+            font-size: 0.9rem; /* Ajustar tamaño de fuente en móviles */
+        }
+        
+        .service-form {
+            margin-top: -50px; /* Ajustar margen superior en móviles */
+        }
 
-    .priority-content {
-        max-width: 600px;
-    }
+        .form-step {
+            flex-direction: column; /* Cambiar dirección de los pasos en móviles */
+        }
 
-    .priority-title {
-        color: var(--primary-color);
-        font-weight: 700;
-        margin-bottom: 20px;
-        font-size: 2rem;
-    }
-
-    .priority-text {
-        font-size: 1rem;
-        color: #333;
-    }
-
-    .priority-images {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 30px;
-    }
-
-    .priority-image {
-        width: 48%;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .step {
+            margin-bottom: 15px; /* Ajustar margen inferior en móviles */
+        }
     }
 </style>
 {% endblock %}
@@ -225,21 +230,61 @@
         </div>
     </nav>
     
-    <!-- Sección Hero con imagen y texto -->
-    <section class="hero-section">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6 hero-content">
-                    <h1 class="hero-title">SERVICIO PROFESIONAL DE ENFERMERÍA A DOMICILIO</h1>
-                    <p class="hero-subtitle">Llevando atención y comodidad hasta la puerta de tu hogar...</p>
-                    <a href="#" class="btn btn-primary">Agéndalo aquí</a>
+    <!-- Carrusel de imágenes -->
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 hero-content">
+                            <h1 class="hero-title">SERVICIO PROFESIONAL DE ENFERMERÍA A DOMICILIO</h1>
+                            <p class="hero-subtitle">Llevando atención y comodidad hasta la puerta de tu hogar...</p>
+                            <a href="#" class="btn btn-primary">Agéndalo aquí</a>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <img src="{% static 'img/Recurso-6.png' %}" alt="Servicio de enfermería" class="img-fluid rounded">
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6 text-center hero-image">
-                    <!-- La imagen se aplicará como fondo en CSS -->
+            </div>
+            <div class="carousel-item">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 hero-content">
+                            <h1 class="hero-title">COMBATE LOS EFECTOS DEL ENVEJECIMIENTO</h1>
+                            <p class="hero-subtitle">Aplícate hoy un suero de Vitamina C y mejora la salud de tu piel.</p>
+                            <a href="#" class="btn btn-primary">Agéndalo Aquí</a>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <img src="{% static 'img/Recurso-7.png' %}" alt="Suero de Vitamina C" class="img-fluid rounded">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 hero-content">
+                            <h1 class="hero-title">¡PROTEGE TU SALUD Y LA DE TU FAMILIA!</h1>
+                            <p class="hero-subtitle">Juntos podemos crear un futuro más saludable. Contamos con servicio de vacunación a domicilio.</p>
+                            <a href="#" class="btn btn-primary">¡Vacúnate Ahora!</a>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <img src="{% static 'img/Recurso-9.png' %}" alt="Vacunación a domicilio" class="img-fluid rounded">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
     
     <!-- Formulario de selección de servicios -->
     <div class="container mb-5">
@@ -270,7 +315,7 @@
             <h5 class="mb-4">Por favor selecciona un servicio:</h5>
             
             <div class="row mb-4">
-                <div class="col-md-3">
+                <div class="col-md-3 col-6"> <!-- Ajustar columnas para móviles -->
                     <label>Ciudad</label>
                     <select class="form-select">
                         <option selected>Selecciona la ciudad</option>
@@ -278,7 +323,7 @@
                         <option>Ciudad 2</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6"> <!-- Ajustar columnas para móviles -->
                     <label>Categoría</label>
                     <select class="form-select">
                         <option selected>Selecciona categoría</option>
@@ -286,7 +331,7 @@
                         <option>Categoría 2</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6"> <!-- Ajustar columnas para móviles -->
                     <label>Servicio</label>
                     <select class="form-select">
                         <option selected>Selecciona servicio</option>
@@ -294,7 +339,7 @@
                         <option>Servicio 2</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6"> <!-- Ajustar columnas para móviles -->
                     <label>Enfermero</label>
                     <select class="form-select">
                         <option selected>Cualquiera</option>
@@ -319,8 +364,8 @@
                     <p class="priority-text">Somos un equipo de enfermeros altamente especializados en el cuidado de pacientes a domicilio. Estamos enfocados en ofrecer soluciones para mejorar tu calidad de vida y brindarte a ti o tu familia la tranquilidad y confianza que necesitan.</p>
                 </div>
                 <div class="col-md-6 priority-images">
-                    <img src="{% static 'img/image1.png' %}" alt="Imagen 1" class="priority-image">
-                    <img src="{% static 'img/image2.png' %}" alt="Imagen 2" class="priority-image">
+                    <img src="{% static 'img/Recurso-7.png' %}" alt="Imagen 1" class="priority-image">
+                    <img src="{% static 'img/Recurso-9.png' %}" alt="Imagen 2" class="priority-image">
                 </div>
             </div>
         </div>
